@@ -1,0 +1,8 @@
+	PUSH	3
+	OUT
+	PUSH	4
+	OUT
+	PUSH	1
+	PUSH	2
+	OUT
+	STOP

@@ -1,0 +1,7 @@
+écrire ces histoires de config
+zerofree
+exporter tout sur la VM
+minimiser la VM
+javatiser la VM "AP"
+add group vboxsf : sudo usermod -a -G vboxsf USER
+change machine name : sudo hostname ap

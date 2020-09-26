@@ -1,0 +1,113 @@
+// $Id: calcul.cup 505 2017-09-25 12:44:47Z coelho $
+
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+import java.lang.Math;
+
+parser code {:
+  public static void main(String args[]) throws Exception {
+    new Parser(new Lexer(new InputStreamReader(System.in))).parse();
+  }
+:}
+
+action code {:
+	Map<String, Double> varMap = new HashMap();
+:}
+
+// definition des token
+terminal TK_PLUS, TK_DONE, TK_MINUS, TK_MUL, TK_DIV, 
+TK_INV, TK_PUS, TK_SIN, 
+TK_L_PAR, TK_R_PAR, TK_LOG, 
+TK_ASSIGN, TK_PLUS_ASSIGN, TK_MUL_ASSIGN,
+TK_AND, TK_OR, 
+TK_BIGGER, TK_SMALLER, TK_BIGGER_EQUAL, TK_SMALLER_EQUAL, TK_NON_EQUAL, TK_EQUAL;
+terminal Double TK_VAL; 
+terminal String TK_VAR;
+
+// definition des etats intermediaires
+non terminal commandes, commande;
+non terminal Double expression;
+non terminal String assignment;
+
+// associativite et priorite des operateurs
+precedence left TK_BIGGER_EQUAL, TK_BIGGER, TK_SMALLER_EQUAL, TK_SMALLER, TK_EQUAL, TK_NON_EQUAL;
+/*precedence left TK_ASSIGN, TK_PLUS_ASSIGN, TK_MUL_ASSIGN;*/
+precedence left TK_PLUS, TK_MINUS;
+precedence left TK_MUL, TK_DIV;
+precedence left TK_PUS, TK_INV;
+precedence left TK_SIN, TK_LOG;
+precedence left TK_OR;
+precedence left TK_AND;
+
+// objectif
+start with commandes;
+
+commandes ::=
+    commande
+  | commandes commande
+;
+
+commande ::=
+    expression:e // expression seule, affichage
+	{: System.out.println("## " + e); :}
+    TK_DONE
+  | assignment:a // assignment of variables
+    {: System.out.println("Variable: " + a + " = " + varMap.get(a)); :}
+ 	TK_DONE
+;
+
+expression ::=
+    expression:e1 TK_PLUS expression:e2 // effectue l'addition
+	{: RESULT = e1 + e2 ; :}
+  | expression:e1 TK_MINUS expression:e2 // effectue la soustraction
+	{: RESULT = e1 - e2 ; :}
+  | TK_MINUS expression:e1 // effectue la soustraction 2
+	{: RESULT = 0 - e1 ; :}
+  | expression:e1 TK_MUL expression:e2 // effectue la multiplication
+  	{: RESULT = e1 * e2 ; :}
+  | expression:e1 TK_DIV expression:e2 // effectue la division
+  	{: RESULT = e1 / e2 ; :}
+  | TK_INV expression:e1 // effectue l'inversion
+  	{: RESULT = 1 / e1 ; :}
+  | TK_L_PAR expression:e1 TK_R_PAR // parenthese
+  	{: RESULT = e1 ; :}
+  | expression:e1 TK_PUS expression:e2 // effectue la puissance et le racine
+  	{: RESULT = Math.pow(e1, e2) ; :} 
+  | TK_SIN expression:e1 // effectue sinus, cosinus...
+  	{: RESULT = Math.sin(e1) ; :}
+  | TK_LOG expression:e1
+  	{: RESULT = Math.log(e1) ; :}
+  | expression:e1 TK_AND expression:e2 // logic and
+  	{: RESULT = ((e1 != 0.0) && (e2 != 0.0)) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_OR expression:e2 // logic or
+  	{: RESULT = ((e1 != 0.0) || (e2 != 0.0)) ? 1.0 : 0.0 ; :} 
+  | expression:e1 TK_BIGGER_EQUAL expression:e2 //comparasions
+	{: RESULT = (e1 >= e2) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_BIGGER expression:e2
+	{: RESULT = (e1 > e2) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_SMALLER_EQUAL expression:e2
+	{: RESULT = (e1 <= e2) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_SMALLER expression:e2
+	{: RESULT = (e1 < e2) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_EQUAL expression:e2
+	{: RESULT = (e1.equals(e2)) ? 1.0 : 0.0 ; :}
+  | expression:e1 TK_NON_EQUAL expression:e2
+	{: RESULT = (!e1.equals(e2)) ? 1.0 : 0.0 ; :}
+  | TK_VAL:v // valeur
+	{: RESULT = v; :}
+  | TK_VAR:a // mapping
+  	{: RESULT = varMap.get(a); :}
+;
+
+assignment ::=
+	TK_VAR:a TK_ASSIGN expression:e1 // =
+	{: varMap.put(a,e1);
+		RESULT = a; :}
+  | TK_VAR:a TK_PLUS_ASSIGN expression:e1 // +=
+	{: varMap.put(a, varMap.get(a) + e1);
+		RESULT = a; :}
+  | TK_VAR:a TK_MUL_ASSIGN expression:e1 // *=
+	{: varMap.put(a, varMap.get(a) * e1);
+		RESULT = a; :}		
+;

@@ -1,0 +1,69 @@
+// $Id: calcul.jlex 505 2017-09-25 12:44:47Z coelho $
+import java_cup.runtime.Symbol;
+import java.io.*;
+import java.lang.Math;
+%%
+%class Lexer
+%line
+%column
+%cup
+%{
+  /** fonction de test du lexer. */
+  static public void main(String[] args) throws Exception {
+    Lexer lexer = new Lexer(new InputStreamReader(System.in));
+    while (true) {
+      Symbol s = lexer.next_token();
+      System.out.println(s);
+    }
+  }
+%}
+%%
+// math calculations
+[0-9]+ { return new Symbol(sym.TK_VAL, new Double(yytext())); }
+[0-9]+(\.[0-9]*)?(E-?[0-9]+)? { return new Symbol(sym.TK_VAL, new Double(yytext())); }
+"+"	{ return new Symbol(sym.TK_PLUS); }
+"-" { return new Symbol(sym.TK_MINUS); }
+"*" { return new Symbol(sym.TK_MUL); }
+"/" { return new Symbol(sym.TK_DIV); }
+"@"	{ return new Symbol(sym.TK_INV); }
+"("	{ return new Symbol(sym.TK_L_PAR); }
+")"	{ return new Symbol(sym.TK_R_PAR); }
+"^"	{ return new Symbol(sym.TK_PUS); }
+"sin"	{ return new Symbol(sym.TK_SIN); }
+"log"	{ return new Symbol(sym.TK_LOG); }
+"pi"	{ return new Symbol(sym.TK_VAL, new Double(Math.PI)); }
+"e"	{ return new Symbol(sym.TK_VAL, new Double(Math.E)); }
+"Infinity"	{ return new Symbol((sym.TK_VAL), new Double(infinity)); }
+//"NaN"	{ 
+
+// definition of booleans
+"true"	{ return new Symbol(sym.TK_VAL, new Double(1)); }
+"false"	{ return new Symbol(sym.TK_VAL, new Double(0)); }
+
+// exit the calculator
+"exit"	{ System.exit(0); }
+
+// definition of variables
+[a-z][a-zA-Z0-9]* { return new Symbol(sym.TK_VAR, yytext()); }
+"="	{ return new Symbol(sym.TK_ASSIGN); }
+"+="	{ return new Symbol(sym.TK_PLUS_ASSIGN); }
+"*="	{ return new Symbol(sym.TK_MUL_ASSIGN); }
+
+// logic expressions
+"&"	{ return new Symbol(sym.TK_AND); }
+"|"	{ return new Symbol(sym.TK_OR); }
+
+// comparasions
+">="	{ return new Symbol(sym.TK_BIGGER_EQUAL); }
+"<="	{ return new Symbol(sym.TK_SMALLER_EQUAL); }
+"=="	{ return new Symbol(sym.TK_EQUAL); }
+">"	{ return new Symbol(sym.TK_BIGGER); }
+"<"	{ return new Symbol(sym.TK_SMALLER); }
+"!="	{ return new Symbol(sym.TK_NON_EQUAL); }
+
+// operation handling
+(\n|\r|\r\n)	{ return new Symbol(sym.TK_DONE); }
+[\ \t\f] { /* ignore espaces et assimiles. */ }
+.	{ System.err.println("unexpected char '" + yytext() +
+			     "' line " + yyline);
+	  return new Symbol(sym.error); }
