@@ -24,12 +24,16 @@ ICNST = [0-9]+
 "else"  { return new Symbol(sym.TK_ELSE);}
 "while" { return new Symbol(sym.TK_WHILE);}
 "mod"   { return new Symbol(sym.TK_MOD);}
+"func"   { return new Symbol(sym.TK_FUNC);}
 
+"," { return new Symbol(sym.TK_COMMA);}
 ";"		{ return new Symbol(sym.TK_SEP);}
 "+" { return new Symbol(sym.TK_ADD);}
 "-" { return new Symbol(sym.TK_SUB);}
 "(" { return new Symbol(sym.TK_L_P);}
 ")" { return new Symbol(sym.TK_R_P);}
+"[" { return new Symbol(sym.TK_L_C);}
+"]" { return new Symbol(sym.TK_R_C);}
 "{" { return new Symbol(sym.TK_L_B);}
 "}" { return new Symbol(sym.TK_R_B);}
 "*" { return new Symbol(sym.TK_MULT);}

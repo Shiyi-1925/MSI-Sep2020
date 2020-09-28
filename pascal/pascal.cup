@@ -19,16 +19,19 @@ action code {:
   String make_comm(String comment) {
     return ";/ " + comment + "\n";
   }
+
+  String current-func = "default";
 :}
 
 terminal TK_SEP, TK_PRINT, TK_ADD, TK_SUB, TK_MULT, TK_DIV, TK_L_P, TK_R_P, TK_LET, TK_EQU, TK_INPUT;
-terminal TK_IF, TK_THEN, TK_ELSE, TK_L_B, TK_R_B, TK_MOD, TK_WHILE;
+terminal TK_IF, TK_THEN, TK_ELSE, TK_L_B, TK_R_B, TK_MOD, TK_WHILE, TK_L_C, TK_R_C, TK_COMMA, TK_FUNC;
 terminal Integer TK_ICNST;
 terminal String TK_VAR;
 
 non terminal target;
 non terminal String declaration, condition, bloc;
 non terminal String program, linst, inst, print, expr;
+non terminal List<String> list;
 
 precedence left TK_EQU;
 precedence left TK_ADD, TK_SUB;
@@ -64,16 +67,32 @@ expr ::= TK_ICNST:i {: RESULT = "\tPUSH\t" + i + "\n"; :}
   | expr:e1 TK_MULT expr:e2 {: RESULT = e1 + e2 + "\tMUL\n"; :}
   | expr:e1 TK_DIV expr:e2 {: RESULT = e1 + e2 + "\tDIV\n"; :}
   | expr:e1 TK_MOD expr:e2 {: RESULT = e1 + e2 + e1 + e2 + "\tDIV\n\tMUL\n\tSUB\n"; :}
-
   | TK_L_P expr:e1 TK_R_P {: RESULT = e1; :}
   | TK_VAR:a {: RESULT = "\tPUSH\t" + a + "\n\tLOAD\n"; :}
 	;
 
+list ::= TK_VAR:a {: List<String> l = new ArrayList<>(); l.add(a); RESULT = l; :}
+  | list:l TK_COMMA TK_VAR:a {: l.add(a); RESULT = l; :}
+  ;
+// a, b, c
+function ::= TK_FUNC TK_VAR:current-func TK_L_P TK_R_P bloc:b
+  {: 
+    int nlabels++;
+    RESULT = "\tPUSH\t" + "findec_"+ nlabels + "\n\tGOTO\n" + 
+    "@" + current-func + "\tEQU\t*\n" + b + "\tOUT\n\tGOTO\nfindec_" + nlabels + "\tEQU\t*\n";
+  :}
+  ;
 declaration ::= TK_LET TK_VAR:a {: RESULT = a + "\tDS\t1\n"; :}
+  | TK_LET TK_VAR:a TK_L_C TK_ICNST:i TK_R_C {: RESULT = a + "\tDS\t"+ i + "\n"; :}
+  | TK_VAR:a TK_L_C expr:e1 TK_R_C TK_EQU expr:e2 {: RESULT = "\tPUSH\t" + a + "\n" + e1 + "\tADD\n" + e2 + "\tSTORE\n"; :}
   | TK_VAR:a TK_EQU expr:e {: RESULT = "\tPUSH\t" + a + "\n" + e + "\tSTORE\n"; :}
   | TK_INPUT TK_VAR:a {: RESULT = a + "\tDS\t1\n\tIN\n" + "\tPUSH\t" + a + "\n\tSTORE\n"; :}
+  // let a,b,c(2);
+  | TK_LET list:l TK_L_P TK_ICNST:i TK_R_P 
+    {: String str = "";
+    for(String var : l){ str += var + "\tDS\t" + i + "\n"; }
+    RESULT = str; :}
   ;
-
 condition ::= TK_IF TK_L_P expr:e TK_R_P TK_THEN bloc:l1 TK_ELSE bloc:l2
     //     e(condition)
     //     BEZ    else_N
@@ -95,7 +114,7 @@ condition ::= TK_IF TK_L_P expr:e TK_R_P TK_THEN bloc:l1 TK_ELSE bloc:l2
     {: int n = nlabels++;
        RESULT = "\t" + e + "\n\tBEZ\tfin_" + n + "\n\t" + l1 + 
        "\nfin_" + n + "\tEQU\t*\n"; :}
-  //| TK_WHILE TK_L_P expr:e TK_R_P bloc:b
+  | TK_WHILE TK_L_P expr:e TK_R_P bloc:b
     //  entree_N   EQU   *
     //          e(condition)
     //          BEZ   sortie_N
@@ -103,4 +122,7 @@ condition ::= TK_IF TK_L_P expr:e TK_R_P TK_THEN bloc:l1 TK_ELSE bloc:l2
     //          PUSH  entree_N
     //          GOTO
     //  sortie_N  EQU *
+    {: int n = nlabels++;
+      RESULT = "entree_" + n + "\tEQU\t*\n" + e + "\tBEZ\tsortie_" + n + "\n"+
+      b + "\tPUSH\tentree_" + n + "\n\tGOTO\nsortie_" + n + "\tEQU\t*\n"; :}
   ;

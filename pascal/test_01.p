@@ -27,8 +27,21 @@ let b;
 a = 3;
 b = 7;
 c = a*b;
-*)
 
 let re;
 re = (15 mod 4);
 print re;
+
+let a;
+a = 24;
+let b;
+b = 18;
+let c;
+while (b) 
+{
+c = (a mod b);
+a = b;
+b = c;
+};
+print a;
+*)

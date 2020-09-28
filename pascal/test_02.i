@@ -1,11 +1,8 @@
-;/ print...
-	PUSH	15
-	PUSH	4
-	PUSH	15
-	PUSH	4
-	DIV
-	MUL
-	SUB
-	OUT
+
+
+
+a	DS	2
+b	DS	2
+c	DS	2
 	STOP
 

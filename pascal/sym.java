@@ -14,16 +14,21 @@ public class sym {
   public static final int TK_SEP = 2;
   public static final int TK_LET = 10;
   public static final int TK_ELSE = 15;
+  public static final int TK_WHILE = 19;
   public static final int TK_THEN = 14;
   public static final int TK_EQU = 11;
-  public static final int TK_VAR = 20;
+  public static final int TK_VAR = 25;
+  public static final int TK_L_C = 20;
   public static final int EOF = 0;
   public static final int TK_L_B = 16;
   public static final int TK_R_P = 9;
   public static final int TK_MOD = 18;
+  public static final int TK_COMMA = 22;
   public static final int error = 1;
-  public static final int TK_ICNST = 19;
+  public static final int TK_ICNST = 24;
+  public static final int TK_FUNC = 23;
   public static final int TK_MULT = 6;
+  public static final int TK_R_C = 21;
   public static final int TK_R_B = 17;
   public static final int TK_PRINT = 3;
   public static final int TK_IF = 13;
@@ -47,6 +52,11 @@ public class sym {
   "TK_L_B",
   "TK_R_B",
   "TK_MOD",
+  "TK_WHILE",
+  "TK_L_C",
+  "TK_R_C",
+  "TK_COMMA",
+  "TK_FUNC",
   "TK_ICNST",
   "TK_VAR"
   };
