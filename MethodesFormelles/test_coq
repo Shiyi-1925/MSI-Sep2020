@@ -1,0 +1,12 @@
+Check 3.
+
+Inductive my_list: Set :=
+  | nil: my_list
+  | cons: nat -> my_list -> my_list.
+
+Definition head (l:my_list) : nat :=
+  match l with nil => 0
+    | cons t q => t
+end.
+
+Theorem tete_test_vaut_1 : (head trois) = 1.

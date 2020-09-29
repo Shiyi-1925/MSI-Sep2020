@@ -25,6 +25,7 @@ ICNST = [0-9]+
 "while" { return new Symbol(sym.TK_WHILE);}
 "mod"   { return new Symbol(sym.TK_MOD);}
 "func"   { return new Symbol(sym.TK_FUNC);}
+"call"  { return new Symbol(sym.TK_CALL);}
 
 "," { return new Symbol(sym.TK_COMMA);}
 ";"		{ return new Symbol(sym.TK_SEP);}

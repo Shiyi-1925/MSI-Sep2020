@@ -20,16 +20,17 @@ action code {:
     return ";/ " + comment + "\n";
   }
 
-  String current-func = "default";
+  String current_func = "default";
 :}
 
 terminal TK_SEP, TK_PRINT, TK_ADD, TK_SUB, TK_MULT, TK_DIV, TK_L_P, TK_R_P, TK_LET, TK_EQU, TK_INPUT;
 terminal TK_IF, TK_THEN, TK_ELSE, TK_L_B, TK_R_B, TK_MOD, TK_WHILE, TK_L_C, TK_R_C, TK_COMMA, TK_FUNC;
+terminal TK_CALL;
 terminal Integer TK_ICNST;
 terminal String TK_VAR;
 
 non terminal target;
-non terminal String declaration, condition, bloc;
+non terminal String declaration, condition, bloc, function, call;
 non terminal String program, linst, inst, print, expr;
 non terminal List<String> list;
 
@@ -52,6 +53,8 @@ inst  ::= print:i TK_SEP {: RESULT = i; :}
   | declaration:a TK_SEP {: RESULT = a; :}
   | condition:c TK_SEP {: RESULT = c; :}
   | bloc:b {: RESULT = b; :}
+  | function:f {: RESULT = f; :}
+  | call:c {: RESULT = c; :}
 	;
 bloc  ::= TK_L_B linst:l TK_R_B {: RESULT = l; :}
   ;
@@ -71,15 +74,48 @@ expr ::= TK_ICNST:i {: RESULT = "\tPUSH\t" + i + "\n"; :}
   | TK_VAR:a {: RESULT = "\tPUSH\t" + a + "\n\tLOAD\n"; :}
 	;
 
+// a, b, c
 list ::= TK_VAR:a {: List<String> l = new ArrayList<>(); l.add(a); RESULT = l; :}
   | list:l TK_COMMA TK_VAR:a {: l.add(a); RESULT = l; :}
   ;
-// a, b, c
-function ::= TK_FUNC TK_VAR:current-func TK_L_P TK_R_P bloc:b
+
+function ::= TK_FUNC TK_VAR:current_func TK_L_P TK_R_P bloc:b
+//     PUSH findec_N
+//     GOTO
+// @name    EQU *
+//     code-corps
+//     GOTO
+//    findec_N  EQU   *
   {: 
-    int nlabels++;
-    RESULT = "\tPUSH\t" + "findec_"+ nlabels + "\n\tGOTO\n" + 
-    "@" + current-func + "\tEQU\t*\n" + b + "\tOUT\n\tGOTO\nfindec_" + nlabels + "\tEQU\t*\n";
+    int n = nlabels++;
+    RESULT = "\tPUSH\t" + "findec_"+ n + "\n\tGOTO\n" + 
+    "@" + current_func + "\tEQU\t*\n" + b + "\tGOTO\nfindec_" + n + "\tEQU\t*\n";
+  :}
+  // | TK_FUNC TK_VAR:current_func TK_L_P list:l TK_R_P bloc:b
+  // {:
+  //   int n = nlabels++;
+  //   String str = "";
+  //   for(String var : l) {
+  //     str += current_func + ":" + var + "\tDS\t1\n";
+  //   }
+  //   str += "\tPUSH\t" + "findec_"+ n + "\n\tGOTO\n" + "@" + current_func + "\tEQU\t*\n";
+  //   for(String var : l) { 
+  //     str += "\tPUSH\t" + current_func + ":" + var + "\n\tSWAP\n\tSTORE\n";
+  //   }
+  //   str += "\tSWAP\n\tGOTO\n";
+  //   str += b + "\tGOTO\nfindec_" + n + "\tEQU\t*\n";
+  //   RESULT = str;
+  // :}
+  ;
+call ::= TK_CALL TK_VAR:current_func TK_L_P TK_R_P
+//     PUSH    ret
+//     PUSH   @name
+//     GOTO
+// ret EQU   *
+  {:
+    int n = nlabels++;
+    RESULT = "\tPUSH\tret_" + n + "\n\tPUSH\t@" + current_func + "\n\tGOTO\nret_" +
+    n + "\tEQU\t*\n";
   :}
   ;
 declaration ::= TK_LET TK_VAR:a {: RESULT = a + "\tDS\t1\n"; :}
